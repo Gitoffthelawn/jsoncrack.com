@@ -1,21 +1,15 @@
 import React from "react";
 import type { ModalProps } from "@mantine/core";
-import { Stack, Modal, Button, Text, Anchor, Menu, Group, Paper } from "@mantine/core";
+import { Stack, Modal, Button, Text, Anchor, Group, Paper } from "@mantine/core";
 import Editor from "@monaco-editor/react";
 import { event as gaEvent } from "nextjs-google-analytics";
 import { toast } from "react-hot-toast";
-import { FaChevronDown } from "react-icons/fa";
-import { FaCrown } from "react-icons/fa6";
 import { VscLinkExternal } from "react-icons/vsc";
-import { FileFormat } from "../../../enums/file.enum";
 import useConfig from "../../../store/useConfig";
 import useFile from "../../../store/useFile";
-import { useModal } from "../../../store/useModal";
 
 export const SchemaModal = ({ opened, onClose }: ModalProps) => {
-  const setContents = useFile(state => state.setContents);
   const setJsonSchema = useFile(state => state.setJsonSchema);
-  const setVisible = useModal(state => state.setVisible);
   const darkmodeEnabled = useConfig(state => (state.darkmodeEnabled ? "vs-dark" : "light"));
   const [schema, setSchema] = React.useState(
     JSON.stringify(
@@ -57,20 +51,6 @@ export const SchemaModal = ({ opened, onClose }: ModalProps) => {
     onClose();
   };
 
-  const generateMockData = async () => {
-    try {
-      const { JSONSchemaFaker } = await import("json-schema-faker");
-      const data = JSONSchemaFaker.generate(JSON.parse(schema));
-      setContents({ contents: JSON.stringify(data, null, 2), format: FileFormat.JSON });
-
-      gaEvent("generate_schema_mock_data");
-      onClose();
-    } catch (error) {
-      console.error(error);
-      toast.error("Invalid Schema");
-    }
-  };
-
   return (
     <Modal title="JSON Schema" size="lg" opened={opened} onClose={onClose} centered>
       <Stack>
@@ -104,27 +84,9 @@ export const SchemaModal = ({ opened, onClose }: ModalProps) => {
           <Button variant="subtle" color="gray" onClick={onClear} disabled={!schema}>
             Clear
           </Button>
-          <Button.Group>
-            <Button variant="default" onClick={onApply} disabled={!schema}>
-              Apply
-            </Button>
-            <Menu>
-              <Menu.Target>
-                <Button variant="default" color="blue" px="xs" disabled={!schema}>
-                  <FaChevronDown />
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={generateMockData}>Generate Mock Data</Menu.Item>
-                <Menu.Item
-                  onClick={() => setVisible("UpgradeModal", true)}
-                  rightSection={<FaCrown />}
-                >
-                  Validate on Diagrams
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Button.Group>
+          <Button variant="default" onClick={onApply} disabled={!schema}>
+            Apply
+          </Button>
         </Group>
       </Stack>
     </Modal>

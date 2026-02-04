@@ -4,13 +4,12 @@ import { useRouter } from "next/router";
 import { useMantineColorScheme } from "@mantine/core";
 import "@mantine/dropzone/styles.css";
 import styled, { ThemeProvider } from "styled-components";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
-// import Cookie from "js-cookie";
 import { NextSeo } from "next-seo";
 import { SEO } from "../constants/seo";
 import { darkTheme, lightTheme } from "../constants/theme";
+import { Banner } from "../features/Banner";
 import { BottomBar } from "../features/editor/BottomBar";
 import { FullscreenDropzone } from "../features/editor/FullscreenDropzone";
 import { Toolbar } from "../features/editor/Toolbar";
@@ -21,16 +20,9 @@ import useFile from "../store/useFile";
 const ModalController = dynamic(() => import("../features/modals/ModalController"));
 const ExternalMode = dynamic(() => import("../features/editor/ExternalMode"));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: false,
-    },
-  },
-});
-
 export const StyledPageWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100%;
 
@@ -49,7 +41,6 @@ export const StyledEditor = styled(Allotment)`
   position: relative !important;
   display: flex;
   background: ${({ theme }) => theme.BACKGROUND_SECONDARY};
-  height: calc(100vh - 40px);
 
   @media only screen and (max-width: 320px) {
     height: 100vh;
@@ -95,34 +86,33 @@ const EditorPage = () => {
         canonical="https://jsoncrack.com/editor"
       />
       <ThemeProvider theme={darkmodeEnabled ? darkTheme : lightTheme}>
-        <QueryClientProvider client={queryClient}>
-          <ExternalMode />
-          <ModalController />
-          <StyledEditorWrapper>
-            <StyledPageWrapper>
-              <Toolbar />
-              <StyledEditorWrapper>
-                <StyledEditor proportionalLayout={false}>
-                  <Allotment.Pane
-                    preferredSize={450}
-                    minSize={fullscreen ? 0 : 300}
-                    maxSize={800}
-                    visible={!fullscreen}
-                  >
-                    <StyledTextEditor>
-                      <TextEditor />
-                      <BottomBar />
-                    </StyledTextEditor>
-                  </Allotment.Pane>
-                  <Allotment.Pane minSize={0}>
-                    <LiveEditor />
-                  </Allotment.Pane>
-                </StyledEditor>
-                <FullscreenDropzone />
-              </StyledEditorWrapper>
-            </StyledPageWrapper>
-          </StyledEditorWrapper>
-        </QueryClientProvider>
+        <ExternalMode />
+        <ModalController />
+        <StyledEditorWrapper>
+          <StyledPageWrapper>
+            {process.env.NEXT_PUBLIC_DISABLE_EXTERNAL_MODE === "true" ? null : <Banner />}
+            <Toolbar />
+            <StyledEditorWrapper>
+              <StyledEditor proportionalLayout={false}>
+                <Allotment.Pane
+                  preferredSize={450}
+                  minSize={fullscreen ? 0 : 300}
+                  maxSize={800}
+                  visible={!fullscreen}
+                >
+                  <StyledTextEditor>
+                    <TextEditor />
+                    <BottomBar />
+                  </StyledTextEditor>
+                </Allotment.Pane>
+                <Allotment.Pane minSize={0}>
+                  <LiveEditor />
+                </Allotment.Pane>
+              </StyledEditor>
+              <FullscreenDropzone />
+            </StyledEditorWrapper>
+          </StyledPageWrapper>
+        </StyledEditorWrapper>
       </ThemeProvider>
     </>
   );
