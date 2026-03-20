@@ -1,6 +1,6 @@
 {
   "name": "jsoncrack-react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reusable JSON Crack canvas as a React component",
   "license": "Apache-2.0",
   "author": "Aykut Saraç",
@@ -47,7 +47,8 @@
   "dependencies": {
     "jsonc-parser": "^3.3.1",
     "react-zoomable-ui": "^0.11.0",
-    "reaflow": "5.4.1"
+    "reaflow": "5.4.1",
+    "use-long-press": "^3.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
