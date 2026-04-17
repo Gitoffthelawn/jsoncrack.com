@@ -4,13 +4,13 @@ import styled from "styled-components";
 import { JSONCrack } from "jsoncrack-react";
 import type { JSONCrackRef, NodeData } from "jsoncrack-react";
 import { SUPPORTED_LIMIT } from "../../../../constants/graph";
+import { pruneInvalidPaths } from "../../../../lib/utils/collapse";
 import useConfig from "../../../../store/useConfig";
 import useJson from "../../../../store/useJson";
 import { useModal } from "../../../../store/useModal";
 import { NotSupported } from "./NotSupported";
-import { OptionsMenu } from "./OptionsMenu";
 import { SecureInfo } from "./SecureInfo";
-import { ZoomControl } from "./ZoomControl";
+import { Toolbar } from "./Toolbar";
 import useGraph from "./stores/useGraph";
 
 const StyledEditorWrapper = styled.div<{ $widget: boolean }>`
@@ -24,6 +24,24 @@ const StyledEditorWrapper = styled.div<{ $widget: boolean }>`
   .jsoncrack-space:active {
     cursor: grabbing;
   }
+
+  .jsoncrack-space rect {
+    rx: 5;
+    ry: 5;
+    stroke-width: 1;
+    filter: drop-shadow(
+      2px 2px 0
+        ${({ theme }) =>
+          theme.BACKGROUND_SECONDARY === "#f2f3f5"
+            ? "rgba(15, 23, 42, 0.25)"
+            : "rgba(0, 0, 0, 0.6)"}
+    );
+  }
+
+  .jsoncrack-space path {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 `;
 
 interface GraphProps {
@@ -35,6 +53,9 @@ export const GraphView = ({ isWidget = false }: GraphProps) => {
   const setJsonCrackRef = useGraph(state => state.setJsonCrackRef);
   const direction = useGraph(state => state.direction);
   const setSelectedNode = useGraph(state => state.setSelectedNode);
+  const collapsedPaths = useGraph(state => state.collapsedPaths);
+  const toggleCollapse = useGraph(state => state.toggleCollapse);
+  const setCollapsedPaths = useGraph(state => state.setCollapsedPaths);
   const gesturesEnabled = useConfig(state => state.gesturesEnabled);
   const rulersEnabled = useConfig(state => state.rulersEnabled);
   const darkmodeEnabled = useConfig(state => state.darkmodeEnabled);
@@ -45,6 +66,12 @@ export const GraphView = ({ isWidget = false }: GraphProps) => {
   React.useEffect(() => {
     setJsonCrackRef(jsonCrackRef);
   }, [setJsonCrackRef]);
+
+  React.useEffect(() => {
+    if (!collapsedPaths.length) return;
+    const pruned = pruneInvalidPaths(json, collapsedPaths);
+    if (pruned.length !== collapsedPaths.length) setCollapsedPaths(pruned);
+  }, [json, collapsedPaths, setCollapsedPaths]);
 
   const blurOnClick = React.useCallback(() => {
     if ("activeElement" in document) {
@@ -64,9 +91,8 @@ export const GraphView = ({ isWidget = false }: GraphProps) => {
 
   return (
     <Box pos="relative" h="100%" w="100%">
-      {!isWidget && <OptionsMenu />}
       {!isWidget && <SecureInfo />}
-      <ZoomControl />
+      {!isWidget && <Toolbar />}
       <StyledEditorWrapper
         $widget={isWidget}
         onContextMenu={event => event.preventDefault()}
@@ -85,6 +111,8 @@ export const GraphView = ({ isWidget = false }: GraphProps) => {
           centerOnLayout
           onViewportCreate={setViewPort}
           onNodeClick={handleNodeClick}
+          collapsedPaths={collapsedPaths}
+          onToggleCollapse={toggleCollapse}
           renderNodeLimitExceeded={() => <NotSupported />}
         />
       </StyledEditorWrapper>
